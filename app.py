@@ -1,7 +1,7 @@
 import streamlit as st
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-import google.generativeai as genai
+from google import genai
 from datetime import datetime
 
 # ===== CONFIG =====
@@ -9,7 +9,7 @@ SHEET_ID = "1zgKG9VEw4Q30leUww9lgoorvYqPEYQplqamgI_sYHIw"  # replace with your G
 
 # ===== Streamlit Secrets =====
 # Gemini API
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 # Google Service Account credentials from secrets
 scope = ["https://www.googleapis.com/auth/spreadsheets",
@@ -70,8 +70,11 @@ Profession: {profession}
 Output:
 """
     with st.spinner("Generating prompt..."):
-        response = genai.generate_content(base_prompt)
-        generated = response.text.strip()
+       response = client.models.generate_content(
+       model="gemini-2.5-flash",
+       contents=base_prompt
+       )
+generated = response.text.strip()
 
         # Timestamp
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -94,3 +97,5 @@ Output:
 
     st.success("✅ Prompt generated and saved to Google Sheets!")
     st.text_area("Generated Prompt", generated, height=200)
+   
+
