@@ -74,7 +74,7 @@ Output:
        model="gemini-2.5-flash",
        contents=base_prompt
        )
-generated = response.text.strip()
+       generated = response.text.strip()
 
         # Timestamp
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -98,4 +98,5 @@ generated = response.text.strip()
     st.success("✅ Prompt generated and saved to Google Sheets!")
     st.text_area("Generated Prompt", generated, height=200)
    
+
 
