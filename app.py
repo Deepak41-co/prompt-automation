@@ -1,4 +1,3 @@
-
 import streamlit as st
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
@@ -6,19 +5,22 @@ import google.generativeai as genai
 from datetime import datetime
 
 # ===== CONFIG =====
-SHEET_ID = "1zgKG9VEw4Q30leUww9lgoorvYqPEYQplqamgI_sYHIw"   # replace with your actual sheet id
-GEMINI_API_KEY = "AIzaSyAevKjd-ex_ZQ90GkY2SDtTfk6y6agHlu4"
+SHEET_ID = "1zgKG9VEw4Q30leUww9lgoorvYqPEYQplqamgI_sYHIw"  # replace with your Google Sheet ID
 
-# Configure Gemini
-genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel("gemini-2.5-pro")
+# ===== Streamlit Secrets =====
+# Gemini API
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
-# Connect to Google Sheets
+# Google Service Account credentials from secrets
 scope = ["https://www.googleapis.com/auth/spreadsheets",
          "https://www.googleapis.com/auth/drive"]
-creds = ServiceAccountCredentials.from_json_keyfile_name("service_account2.json", scope)
+
+creds_dict = dict(st.secrets["google_service_account"])
+creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
+
+# Authorize client
 client = gspread.authorize(creds)
-sheet = client.open_by_key(SHEET_ID).sheet1   # since only one tab, use sheet1
+sheet = client.open_by_key(SHEET_ID).sheet1  # first tab in your separate sheet
 
 # ===== Few-Shot Examples =====
 FEW_SHOT = """
@@ -47,7 +49,7 @@ st.title("✨ Character Prompt Generator (Gemini + Google Sheets)")
 
 with st.form("character_form"):
     name = st.text_input("Full Name")
-    dob = st.text_input("Date of Birth (e.g. 24 February 1984)")
+    dob = st.text_input("Date of Birth (e.g., 24 February 1984)")
     pob = st.text_input("Place of Birth")
     profession = st.text_input("Profession")
     submitted = st.form_submit_button("Generate Prompt")
@@ -68,15 +70,15 @@ Profession: {profession}
 Output:
 """
     with st.spinner("Generating prompt..."):
-        response = model.generate_content(base_prompt)
+        response = genai.generate_content(base_prompt)
         generated = response.text.strip()
 
-        # Generate timestamp
+        # Timestamp
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         # Row data (id left empty)
         row_data = [
-            "",             # id (empty)
+            "",             # id
             name,           # name
             generated,      # prompt
             "",             # img
@@ -87,7 +89,7 @@ Output:
             ""              # category
         ]
 
-        # Save row into sheet
+        # Save row in Google Sheet
         sheet.append_row(row_data)
 
     st.success("✅ Prompt generated and saved to Google Sheets!")
