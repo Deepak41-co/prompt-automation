@@ -3,6 +3,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import google.generativeai as genai
 from datetime import datetime
+from zoneinfo import ZoneInfo 
 
 # ===== CONFIG =====
 SHEET_ID = "1zgKG9VEw4Q30leUww9lgoorvYqPEYQplqamgI_sYHIw"  # replace with your Google Sheet ID if different
@@ -95,7 +96,7 @@ Output:
         generated = generated.strip()
 
         # Timestamp
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%Y-%m-%d %H:%M:%S")
 
         # Row data (id left empty)
         row_data = [
@@ -119,4 +120,5 @@ Output:
     except Exception as e:
         st.error("Error generating or saving the prompt. See details below.")
         st.exception(e)
+
 
